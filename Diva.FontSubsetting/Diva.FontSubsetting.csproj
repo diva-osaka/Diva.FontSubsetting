@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <Copyright>DIVA Co., Ltd.</Copyright>
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="IKVM" Version="8.11.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <IkvmReference Include=".\lib\sfntly\sfntly.jar">
+            <AssemblyName>Sfntly</AssemblyName>
+            <AssemblyVersion>1.0.0.0</AssemblyVersion>
+            <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
+        </IkvmReference>
+        <IkvmReference Include=".\lib\sfntly\subsetter.jar">
+            <AssemblyName>Subsetter</AssemblyName>
+            <AssemblyVersion>1.0.0.0</AssemblyVersion>
+            <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
+            <References>.\lib\sfntly\sfntly.jar</References>
+        </IkvmReference>
+    </ItemGroup>
+</Project>
