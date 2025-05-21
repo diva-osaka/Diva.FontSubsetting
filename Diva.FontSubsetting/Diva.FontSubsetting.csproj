@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Authors>DIVA Co., Ltd.</Authors>
         <RepositoryUrl>https://github.com/diva-osaka/Diva.FontSubsetting</RepositoryUrl>
         <DebugType>embedded</DebugType>
+        <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
+        <Version>1.0.6</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -25,5 +26,24 @@
             <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
             <References>.\lib\sfntly\sfntly.jar</References>
         </IkvmReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="$(OutputPath)\net6.0\Sfntly.dll">
+            <Pack>true</Pack>
+            <PackagePath>lib\net6.0</PackagePath>
+        </Content>
+        <Content Include="$(OutputPath)\net6.0\Subsetter.dll">
+            <Pack>true</Pack>
+            <PackagePath>lib\net6.0</PackagePath>
+        </Content>
+        <Content Include="$(OutputPath)\net8.0\Sfntly.dll">
+            <Pack>true</Pack>
+            <PackagePath>lib\net8.0</PackagePath>
+        </Content>
+        <Content Include="$(OutputPath)\net8.0\Subsetter.dll">
+            <Pack>true</Pack>
+            <PackagePath>lib\net8.0</PackagePath>
+        </Content>
     </ItemGroup>
 </Project>
