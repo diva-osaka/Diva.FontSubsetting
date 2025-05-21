@@ -2,7 +2,7 @@
 
 [sfntly](https://github.com/googlefonts/sfntly) と [IKVM](https://github.com/ikvmnet/ikvm) を用いてフォントをサブセット化する C# ライブラリー。
 
-IKVM プロジェクトでは、IKVM でコンパイルされた FOSS Java ライブラリを再配布しないことを推奨しているが、パッケージには含めている。
+IKVM プロジェクトでは、IKVM でコンパイルされた FOSS Java ライブラリーを[再配布しないことを推奨している](https://github.com/ikvmnet/ikvm?tab=readme-ov-file#notice-to-project-owners)が、パッケージには含めている。
 
 ## 使い方
 
