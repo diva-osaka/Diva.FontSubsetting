@@ -1,6 +1,6 @@
 # Font Subsetter
 
-[sfntly](https://github.com/googlefonts/sfntly) と [IKVM](https://github.com/ikvmnet/ikvm) を用いてフォントのサブセット化する C# ライブラリー。
+[sfntly](https://github.com/googlefonts/sfntly) と [IKVM](https://github.com/ikvmnet/ikvm) を用いてフォントをサブセット化する C# ライブラリー。
 
 IKVM プロジェクトでは、IKVM でコンパイルされた FOSS Java ライブラリを再配布しないことを推奨しているが、パッケージには含めている。
 
