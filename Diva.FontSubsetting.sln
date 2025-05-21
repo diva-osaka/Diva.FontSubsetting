@@ -2,10 +2,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diva.FontSubsetting", "Diva.FontSubsetting\Diva.FontSubsetting.csproj", "{BC8A3E0B-2116-451E-A660-9FD5D61CDDA3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Diva.FontSubsetting.QuestPDF", "Diva.FontSubsetting.QuestPDF\Diva.FontSubsetting.QuestPDF.csproj", "{DC858B1E-11EC-4C2A-8297-AC08CA44E07E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConsoleApp", "SampleConsoleApp\SampleConsoleApp.csproj", "{8EA67510-745A-456F-B4A1-57103DC25D18}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,13 +12,5 @@ Global
 		{BC8A3E0B-2116-451E-A660-9FD5D61CDDA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC8A3E0B-2116-451E-A660-9FD5D61CDDA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC8A3E0B-2116-451E-A660-9FD5D61CDDA3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC858B1E-11EC-4C2A-8297-AC08CA44E07E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC858B1E-11EC-4C2A-8297-AC08CA44E07E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC858B1E-11EC-4C2A-8297-AC08CA44E07E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC858B1E-11EC-4C2A-8297-AC08CA44E07E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8EA67510-745A-456F-B4A1-57103DC25D18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8EA67510-745A-456F-B4A1-57103DC25D18}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8EA67510-745A-456F-B4A1-57103DC25D18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8EA67510-745A-456F-B4A1-57103DC25D18}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
