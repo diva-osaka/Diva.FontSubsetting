@@ -121,7 +121,8 @@ public static class FontSubsetter
             var originalEntry = originalNameTable.nameEntry(i);
             var nameId = originalEntry.nameId();
 
-            if (nameId != NameId.FontFamilyName.value())
+            // Name ID = 1 (Font Family name) と Name ID = 16 (Typographic Family name) を書き換える
+            if (nameId != NameId.FontFamilyName.value() && nameId != NameId.PreferredFamily.value())
                 continue;
 
             // 深追いはしていないが、ICU4JはIKVMで変換したときにうまく内部リソースデータを取得できない&ビルドに時間が掛かる
