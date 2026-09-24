@@ -6,8 +6,8 @@
         <Authors>DIVA Co., Ltd.</Authors>
         <RepositoryUrl>https://github.com/diva-osaka/Diva.FontSubsetting</RepositoryUrl>
         <DebugType>embedded</DebugType>
-        <TargetFrameworks>net8.0;net6.0</TargetFrameworks>
-        <Version>1.0.7</Version>
+        <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+        <Version>1.0.8</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,13 +29,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="$(OutputPath)\net6.0\Sfntly.dll">
+        <Content Include="$(OutputPath)\net10.0\Sfntly.dll">
             <Pack>true</Pack>
-            <PackagePath>lib\net6.0</PackagePath>
+            <PackagePath>lib\net10.0</PackagePath>
         </Content>
-        <Content Include="$(OutputPath)\net6.0\Subsetter.dll">
+        <Content Include="$(OutputPath)\net10.0\Subsetter.dll">
             <Pack>true</Pack>
-            <PackagePath>lib\net6.0</PackagePath>
+            <PackagePath>lib\net10.0</PackagePath>
         </Content>
         <Content Include="$(OutputPath)\net8.0\Sfntly.dll">
             <Pack>true</Pack>
