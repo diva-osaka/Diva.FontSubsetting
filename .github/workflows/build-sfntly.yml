@@ -1,0 +1,149 @@
+name: Build sfntly jars
+
+# diva-osaka/sfntly（googlefonts/sfntly のフォーク）をソースからビルドし、
+# lib/sfntly の jar と README を更新する PR を作成する（手動実行）
+# このワークフローを変更する PR では、ビルドと比較のみ行う
+#
+# - IKVM 8.x は Java 8 のクラスファイルまでしか変換できないため JDK 8 でビルドする
+# - jar はタイムスタンプを含み毎回バイナリが変わるため、展開したクラスファイルに差分がある場合のみ差し替える
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: diva-osaka/sfntly のコミット SHA・ブランチ・タグ
+        required: true
+        default: a56f5782f209771aa226063757d57e6b5c948478
+  pull_request:
+    branches: [ master ]
+    paths: [ .github/workflows/build-sfntly.yml ]
+
+permissions:
+  contents: read
+
+env:
+  LIB_DIR: Diva.FontSubsetting/lib/sfntly
+  # PR 実行時は既定のコミットを使う
+  SFNTLY_REF: ${{ inputs.ref || 'a56f5782f209771aa226063757d57e6b5c948478' }}
+
+jobs:
+  # 外部のソースをビルドするジョブには書き込み権限を与えない
+  build:
+    runs-on: ubuntu-24.04 # Ant 1.10 がプリインストールされている
+    outputs:
+      sha: ${{ steps.build.outputs.sha }}
+      jdk: ${{ steps.build.outputs.jdk }}
+      summary: ${{ steps.compare.outputs.summary }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: diva-osaka/sfntly
+          ref: ${{ env.SFNTLY_REF }}
+          path: sfntly-src
+          persist-credentials: false
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '8'
+
+      - name: Build
+        id: build
+        run: |
+          ant -f sfntly-src/java/build.xml jar
+          ant -f sfntly-src/java/src/com/google/typography/font/tools/subsetter/build.xml
+          mkdir "$RUNNER_TEMP/jars"
+          cp sfntly-src/java/dist/lib/sfntly.jar sfntly-src/java/dist/tools/subsetter/subsetter.jar "$RUNNER_TEMP/jars/"
+          echo "sha=$(git -C sfntly-src rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "jdk=$(javac -version 2>&1)" >> "$GITHUB_OUTPUT"
+
+      - name: Compare and update jars
+        id: compare
+        run: |
+          SUMMARY=""
+          for jar in sfntly.jar subsetter.jar; do
+            old="$RUNNER_TEMP/old/$jar"; new="$RUNNER_TEMP/new/$jar"
+            mkdir -p "$old" "$new"
+            unzip -q "$LIB_DIR/$jar" -d "$old"
+            unzip -q "$RUNNER_TEMP/jars/$jar" -d "$new"
+            if diff -r -q --exclude=MANIFEST.MF "$old" "$new" > "$RUNNER_TEMP/$jar.diff"; then
+              SUMMARY+="- \`$jar\`: クラスファイルに差分なし（jar は差し替えない）"$'\n'
+            else
+              cat "$RUNNER_TEMP/$jar.diff"
+              cp "$RUNNER_TEMP/jars/$jar" "$LIB_DIR/$jar"
+              SUMMARY+="- \`$jar\`: クラスファイルに差分あり（$(wc -l < "$RUNNER_TEMP/$jar.diff") 件）→ 差し替え"$'\n'
+            fi
+          done
+          printf '%s' "$SUMMARY" | tee -a "$GITHUB_STEP_SUMMARY"
+          {
+            echo "summary<<EOF"
+            printf '%s' "$SUMMARY"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update README
+        env:
+          SFNTLY_SHA: ${{ steps.build.outputs.sha }}
+          JDK: ${{ steps.build.outputs.jdk }}
+        run: |
+          sed -i "s|^このフォルダに含まれるjarファイルは、.*|このフォルダに含まれるjarファイルは、https://github.com/diva-osaka/sfntly のコミット ${SFNTLY_SHA} を ${JDK}（Temurin）でビルドしたバイナリです（.github/workflows/build-sfntly.yml で生成）。|" "$LIB_DIR/README.txt"
+          git diff --stat
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sfntly-lib
+          path: ${{ env.LIB_DIR }}
+          if-no-files-found: error
+
+  # 変更のコミットと PR 作成のみ行う（外部のコードは実行しない）
+  pull-request:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SFNTLY_SHA: ${{ needs.build.outputs.sha }}
+      JDK: ${{ needs.build.outputs.jdk }}
+      SUMMARY: ${{ needs.build.outputs.summary }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: sfntly-lib
+          path: ${{ env.LIB_DIR }}
+
+      - name: Create pull request
+        run: |
+          if git diff --quiet; then
+            echo "変更がないため PR は作成しません"
+            exit 0
+          fi
+          BRANCH="chore/build-sfntly-${SFNTLY_SHA:0:7}-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add "$LIB_DIR"
+          git commit -m "sfntly の jar を再ビルド (diva-osaka/sfntly@${SFNTLY_SHA:0:7})"
+          git push origin "$BRANCH"
+          gh pr create --base "$GITHUB_REF_NAME" --head "$BRANCH" \
+            --title "sfntly の jar を再ビルド (diva-osaka/sfntly@${SFNTLY_SHA:0:7})" \
+            --body "$(cat <<EOF
+          diva-osaka/sfntly のコミット [\`${SFNTLY_SHA:0:7}\`](https://github.com/diva-osaka/sfntly/commit/${SFNTLY_SHA}) を ${JDK}（Temurin）でビルドしました。
+
+          ## 比較結果
+          ${SUMMARY}
+          ## 注意
+          この PR は GITHUB_TOKEN で作成しているため、PR の CI（Build and Release）は自動では実行されません。
+          CI を実行するには、PR をいったん Close してから Reopen してください。
+
+          ワークフロー実行: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          EOF
+          )"
