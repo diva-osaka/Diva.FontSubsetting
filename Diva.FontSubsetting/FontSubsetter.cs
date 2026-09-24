@@ -40,13 +40,16 @@ public static class FontSubsetter
     /// サブセットタグ（PDF仕様のフォントサブセット接頭辞、大文字6文字）を取得します。
     /// </summary>
     /// <remarks>
-    /// 同じ接尾辞からは常に同じタグを生成します。
+    /// 接尾辞とサブセットに含める文字（重複を除き並べ替えたもの）から生成するため、
+    /// 内容が異なるサブセットには異なるタグが付き、同じ内容のサブセットには同じタグが付きます。
     /// </remarks>
+    /// <param name="subsetString">サブセットフォントに含める文字</param>
     /// <param name="suffix">接尾辞（未エンコード）</param>
     /// <returns>大文字アルファベット6文字のタグ</returns>
-    public static string GetSubsetTag(string? suffix = null)
+    public static string GetSubsetTag(string subsetString, string? suffix = null)
     {
-        var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(suffix ?? "subset"));
+        var characters = new string(subsetString.Distinct().Order().ToArray());
+        var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes($"{suffix ?? "subset"}\0{characters}"));
         return new string(hash.Take(6).Select(b => (char)('A' + b % 26)).ToArray());
     }
 
@@ -58,15 +61,16 @@ public static class FontSubsetter
     /// SkiaSharpはPostScript名をそのまま /BaseFont に使うため、ここでタグを付けておく。
     /// </remarks>
     /// <param name="originalName">オリジナルPostScript名</param>
+    /// <param name="subsetString">サブセットフォントに含める文字</param>
     /// <param name="suffix">接尾辞（未エンコード）</param>
     /// <returns>タグ+オリジナルPostScript名（63文字以内）</returns>
-    public static string GetSubsetPostScriptName(string originalName, string? suffix = null)
+    public static string GetSubsetPostScriptName(string originalName, string subsetString, string? suffix = null)
     {
         // すでにタグが付いている場合は外す
         if (originalName.Length > 7 && originalName[6] == '+' && originalName[..6].All(c => c is >= 'A' and <= 'Z'))
             originalName = originalName[7..];
 
-        var name = $"{GetSubsetTag(suffix)}+{originalName}";
+        var name = $"{GetSubsetTag(subsetString, suffix)}+{originalName}";
         // PostScript名は63文字以内
         return name.Length > 63 ? name[..63] : name;
     }
@@ -172,7 +176,7 @@ public static class FontSubsetter
 
             var name = encoding.GetString(nameBytes);
             var newName = isPostScriptName
-                ? GetSubsetPostScriptName(name, suffix)
+                ? GetSubsetPostScriptName(name, subsetString, suffix)
                 : GetSubsetFontFamilyName(name, suffix);
             var newNameBytes = encoding.GetBytes(newName);
             var nameEntryBuilder = nameTableBuilder.nameBuilder(
