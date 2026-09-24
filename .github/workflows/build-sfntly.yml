@@ -140,9 +140,10 @@ jobs:
 
           ## 比較結果
           ${SUMMARY}
+
           ## 注意
           この PR は GITHUB_TOKEN で作成しているため、PR の CI（Build and Release）は自動では実行されません。
-          CI を実行するには、PR をいったん Close してから Reopen してください。
+          CI を実行するには、PR の「Approve workflows to run」ボタンを押してください。
 
           ワークフロー実行: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
           EOF

@@ -31,4 +31,4 @@ Actions の「Build sfntly jars」ワークフローを手動実行すると、�
 
 * IKVM 8.x は Java 8 のクラスファイルまでしか変換できないため、JDK 8 でビルドする。
 * jar はタイムスタンプを含むため、展開したクラスファイルに差分がある場合のみ差し替える。
-* ワークフローが作成した PR では CI が自動実行されないため、Close → Reopen して実行する。
+* ワークフローが作成した PR では CI が自動実行されないため、PR の「Approve workflows to run」ボタンで実行する。
