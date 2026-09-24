@@ -37,6 +37,41 @@ public static class FontSubsetter
         $"{originalName}+{EncodeSuffix(suffix ?? "subset")}";
 
     /// <summary>
+    /// サブセットタグ（PDF仕様のフォントサブセット接頭辞、大文字6文字）を取得します。
+    /// </summary>
+    /// <remarks>
+    /// 同じ接尾辞からは常に同じタグを生成します。
+    /// </remarks>
+    /// <param name="suffix">接尾辞（未エンコード）</param>
+    /// <returns>大文字アルファベット6文字のタグ</returns>
+    public static string GetSubsetTag(string? suffix = null)
+    {
+        var hash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(suffix ?? "subset"));
+        return new string(hash.Take(6).Select(b => (char)('A' + b % 26)).ToArray());
+    }
+
+    /// <summary>
+    /// サブセットフォントのPostScript名を取得します。
+    /// </summary>
+    /// <remarks>
+    /// PDFに埋め込まれるサブセットフォントは、フォント名の先頭に「タグ+」を付ける必要がある（PDF仕様 9.6.4 Font Subsets）。
+    /// SkiaSharpはPostScript名をそのまま /BaseFont に使うため、ここでタグを付けておく。
+    /// </remarks>
+    /// <param name="originalName">オリジナルPostScript名</param>
+    /// <param name="suffix">接尾辞（未エンコード）</param>
+    /// <returns>タグ+オリジナルPostScript名（63文字以内）</returns>
+    public static string GetSubsetPostScriptName(string originalName, string? suffix = null)
+    {
+        // すでにタグが付いている場合は外す
+        if (originalName.Length > 7 && originalName[6] == '+' && originalName[..6].All(c => c is >= 'A' and <= 'Z'))
+            originalName = originalName[7..];
+
+        var name = $"{GetSubsetTag(suffix)}+{originalName}";
+        // PostScript名は63文字以内
+        return name.Length > 63 ? name[..63] : name;
+    }
+
+    /// <summary>
     /// フォントをサブセット化します（フォントコレクションをサポート）。
     /// サブセット化されたフォントのフォントファミリー名は「元のフォントファミリー名+エンコードされたサブセット接尾辞」になります。
     /// </summary>
@@ -113,7 +148,7 @@ public static class FontSubsetter
         subsetter.setRemoveTables(removeTables);
         var fontBuilder = subsetter.subset();
 
-        // フォントファミリー名を変更する
+        // フォントファミリー名とPostScript名を変更する
         var originalNameTable = (NameTable)font.getTable(Tag.name);
         var nameTableBuilder = (NameTable.Builder)fontBuilder.getTableBuilder(Tag.name);
         for (var i = 0; i < originalNameTable.nameCount(); i++)
@@ -121,8 +156,10 @@ public static class FontSubsetter
             var originalEntry = originalNameTable.nameEntry(i);
             var nameId = originalEntry.nameId();
 
-            // Name ID = 1 (Font Family name) と Name ID = 16 (Typographic Family name) を書き換える
-            if (nameId != NameId.FontFamilyName.value() && nameId != NameId.PreferredFamily.value())
+            // Name ID = 1 (Font Family name), Name ID = 16 (Typographic Family name), Name ID = 6 (PostScript name) を書き換える
+            var isFamilyName = nameId == NameId.FontFamilyName.value() || nameId == NameId.PreferredFamily.value();
+            var isPostScriptName = nameId == NameId.PostscriptName.value();
+            if (!isFamilyName && !isPostScriptName)
                 continue;
 
             // 深追いはしていないが、ICU4JはIKVMで変換したときにうまく内部リソースデータを取得できない&ビルドに時間が掛かる
@@ -134,7 +171,9 @@ public static class FontSubsetter
             var encoding = GetEncoding(platformId, encodingId, languageId);
 
             var name = encoding.GetString(nameBytes);
-            var newName = GetSubsetFontFamilyName(name, suffix);
+            var newName = isPostScriptName
+                ? GetSubsetPostScriptName(name, suffix)
+                : GetSubsetFontFamilyName(name, suffix);
             var newNameBytes = encoding.GetBytes(newName);
             var nameEntryBuilder = nameTableBuilder.nameBuilder(
                 platformId,
