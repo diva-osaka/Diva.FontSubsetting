@@ -7,7 +7,7 @@
         <RepositoryUrl>https://github.com/diva-osaka/Diva.FontSubsetting</RepositoryUrl>
         <DebugType>embedded</DebugType>
         <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
-        <Version>1.0.8</Version>
+        <Version>1.0.9</Version>
     </PropertyGroup>
 
     <ItemGroup>
