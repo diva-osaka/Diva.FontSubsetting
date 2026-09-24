@@ -30,5 +30,5 @@ List<byte[]> subsetFonts = FontSubsetter.SubsetFonts(fontBytes, "こんにちは
 Actions の「Build sfntly jars」ワークフローを手動実行すると、指定したコミットを JDK 8（Temurin）と Ant でビルドし、jar と `lib/sfntly/README.txt` を更新する PR を作成する。
 
 * IKVM 8.x は Java 8 のクラスファイルまでしか変換できないため、JDK 8 でビルドする。
-* jar はタイムスタンプを含むため、展開したクラスファイルに差分がある場合のみ差し替える。
-* ワークフローが作成した PR では CI が自動実行されないため、Close → Reopen して実行する。
+* jar はタイムスタンプを含むため、展開したクラスファイルに差分がある場合のみ差し替える。`force` を指定すると差分がなくても差し替える（ローカルでビルドした jar を CI でビルドしたものに置き換える場合など）。
+* ワークフローが作成した PR では CI が自動実行されないため、PR の「Approve workflows to run」ボタンで実行する。
